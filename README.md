@@ -22,11 +22,13 @@ __Development in progress, currently this is very early version.__
 ### PUT /totp/disableWithToken
 ### PUT /totp/disableWithBackupCode
 ### GET /users/:userId
+### POST /users/resetPassword
 
 ## TODO:
 - [x] TOTP
 - [x] Permissions and Roles system
-- [ ] Password recovering
+- [x] Password recovering
+- [ ] Changing password
 - [ ] Add rate limiting in some places
 - [ ] Move all values to configuration files
 - [ ] E-mails internationalization templates
