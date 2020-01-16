@@ -1,13 +1,31 @@
+import { Injectable, Dependencies, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import i18n from 'i18n';
 
-i18n.configure({
-  locales: ['en', 'pl'],
-  directory: `${__dirname}/locales`,
-  defaultLocale: 'en',
-  cookie: 'lang',
-  queryParameter: 'lang',
-});
+@Injectable()
+@Dependencies(ConfigService)
+export class I18nMiddleware {
 
-export default (request, response, next) => {
-  i18n.init(request, response, next);
-};
+  constructor(configService) {
+    this.logger = new Logger('i18n');
+    this.configService = configService;
+    i18n.configure({
+      logDebugFn: (message) => {
+        this.logger.debug(message);
+      },
+      
+      logWarnFn: (message) => {
+        this.logger.warn(message);
+      },
+      
+      logErrorFn: (message) => {
+        this.logger.error(message);
+      },
+      ...this.configService.get('i18n'),
+    });    
+  }
+
+  use(request, response, next) {
+    i18n.init(request, response, next); 
+  }
+}

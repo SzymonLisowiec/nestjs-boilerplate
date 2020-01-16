@@ -4,6 +4,7 @@ import mailer from './mailer';
 import cache from './cache';
 import database from './database';
 import roles from './roles';
+import i18n from './i18n';
 
 export default [
   users,
@@ -12,4 +13,5 @@ export default [
   cache,
   database,
   roles,
+  i18n,
 ];

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nest-modules/mailer';
@@ -12,6 +12,7 @@ import { ConfirmationsModule } from './confirmations/confirmations.module';
 import configuration from './config';
 import { MailerHandlebarsAdapter } from './helpers/MailerHandlebarsAdapter'
 import { ValidateModule } from './validate/validate.module';
+import { I18nMiddleware } from './i18n.middleware';
 
 @Module({
   imports: [
@@ -57,4 +58,10 @@ import { ValidateModule } from './validate/validate.module';
     AppService,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer) {
+    consumer
+      .apply(I18nMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
