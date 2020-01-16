@@ -11,6 +11,7 @@ import { CacheModule } from './cache';
 import { ConfirmationsModule } from './confirmations/confirmations.module';
 import configuration from './config';
 import { MailerHandlebarsAdapter } from './helpers/MailerHandlebarsAdapter'
+import { ValidateModule } from './validate/validate.module';
 
 @Module({
   imports: [
@@ -18,6 +19,8 @@ import { MailerHandlebarsAdapter } from './helpers/MailerHandlebarsAdapter'
       isGlobal: true,
       load: configuration,
     }),
+
+    ValidateModule,
     
     UsersModule,
     AuthModule,

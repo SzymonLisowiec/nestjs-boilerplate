@@ -1,35 +1,42 @@
 import { Controller, Dependencies, UseGuards, Post, Request, Body, Get, Bind } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { ValidateBody } from '../validate.decorator';
+import { ValidateService } from '../validate/validate.service';
 
 @Controller('auth')
-@Dependencies(AuthService)
+@Dependencies(ValidateService, AuthService, ConfigService)
 export class AuthController {
-  constructor (authService) {
+  constructor (validateService, authService, configService) {
+    this.validateService = validateService;
     this.authService = authService;
+    this.configService = configService;
   }
 
   @UseGuards(AuthGuard('local'))
   @Post('login')
-  @ValidateBody({
-    login: 'required|string',
-    password: 'required|string|min:5|max:100',
-  })
   @Bind(Request(), Body())
   async login(request, payload) {
+    const [ minPasswordLength, maxPasswordLength ] = await this.configService.get('users.password.length');
+    await this.validateService.validate(payload, {
+      login: 'required|string',
+      password: `required|string|min:${minPasswordLength}|max:${maxPasswordLength}`,
+    });
     return this.authService.login(request.user, payload);
   }
 
   @Post('register')
-  @ValidateBody({
-    name: 'required|string|min:3|max:16',
-    email: 'required|email',
-    password: 'required|string|min:5|max:100',
-    tos: 'required|boolean|accepted',
-  })
   @Bind(Request(), Body())
   async register(request, payload) {
+    const usernameCharset = await this.configService.get('users.username.charset');
+    const [ minUsernameLength, maxUsernameLength ] = await this.configService.get('users.username.length');
+    const [ minPasswordLength, maxPasswordLength ] = await this.configService.get('users.password.length');
+    await this.validateService.validate(payload, {
+      name: `required|string|min:${minUsernameLength}|max:${maxUsernameLength}|regex:/^[${usernameCharset}]{0,}$/`,
+      email: 'required|email',
+      password: `required|string|min:${minPasswordLength}|max:${maxPasswordLength}`,
+      tos: 'required|boolean|accepted',
+    });
     return this.authService.register(request, payload);
   }
 

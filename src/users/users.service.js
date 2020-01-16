@@ -23,6 +23,7 @@ export class UsersService {
     if (await this.findOneByName(user.name)) {
       throw new BadRequestException('Username has already been taken.');
     }
+
     const createdUser = new this.userModel({
       ...user,
       password: await this.hashPassword(user.password),
