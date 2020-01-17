@@ -10,8 +10,11 @@ export class ConfirmationsController {
 
   @Put('confirm')
   @Bind(Body())
-  async create ({ token }) {
-    await this.confirmationsService.confirm(token);
+  async create (payload) {
+    await this.validateService.validate(payload, {
+      token: 'required|string',
+    });
+    await this.confirmationsService.confirm(payload.token);
     return {};
   }
 
