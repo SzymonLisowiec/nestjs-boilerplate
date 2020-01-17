@@ -1,20 +1,22 @@
 import { Injectable, Dependencies, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import Otp from '2fa';
 import { CacheManager } from '../cache';
 
 @Injectable()
-@Dependencies(UsersService, CacheManager)
+@Dependencies(UsersService, CacheManager, ConfigService)
 export class TotpService {
 
-  constructor(usersService, cache) {
+  constructor(usersService, cache, configService) {
     this.usersService = usersService;
+    this.configService = configService;
     this.cache = cache;
 
     this.options = {
-      issuer: 'nestjs-boilerplate',
-      drift: 2,
-      period: 30,
+      issuer: this.configService.get('totp.issuer'),
+      drift: this.configService.get('totp.drift'),
+      period: this.configService.get('totp.period'),
     };
 
   }
@@ -55,12 +57,16 @@ export class TotpService {
     if (user.totp && user.totp.isActive) {
       throw new BadRequestException('Cannot generate totp.');
     }
-    const key = await this.generateKey(32);
+    const keyLength = this.configService.get('totp.backupCodes.key.length');
+    const key = await this.generateKey(keyLength);
+    const backupCodesCount = this.configService.get('totp.backupCodes.count');
+    const backupCodesPattern = this.configService.get('totp.backupCodes.pattern');
+    const backupCodes = await this.generateBackupCodes(backupCodesCount, backupCodesPattern);
     user.totp = {
       isActive: false,
       key,
       period: this.options.period,
-      backupCodes: await this.generateBackupCodes(1, 'xxxx-xxxx'),
+      backupCodes,
     };
     await user.save();
     return {
@@ -68,6 +74,7 @@ export class TotpService {
       url: this.generateUrl(user.name, key),
       period: this.options.period,
       drift: this.options.drift,
+      backupCodes,
       serverTime: this.getServerTime(),
     };
   }

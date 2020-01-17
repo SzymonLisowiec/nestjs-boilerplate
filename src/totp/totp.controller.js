@@ -1,12 +1,14 @@
 import { Controller, Dependencies, UseGuards, Post, Request, Body, Put, Bind } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TotpService } from './totp.service';
+import { ValidateService } from '../validate/validate.service';
 
 @Controller('totp')
-@Dependencies(TotpService)
+@Dependencies(TotpService, ValidateService)
 export class TotpController {
-  constructor (totpService) {
+  constructor (totpService, validateService) {
     this.totpService = totpService;
+    this.validateService = validateService;
   }
 
   @UseGuards(AuthGuard('bearer'))
@@ -19,23 +21,32 @@ export class TotpController {
   @UseGuards(AuthGuard('bearer'))
   @Put('enable')
   @Bind(Request(), Body())
-  async enable({ user }, { token }) {
-    await this.totpService.enable(user, token);
+  async enable({ user }, payload) {
+    await this.validateService.validate(payload, {
+      token: `required|string`,
+    });
+    await this.totpService.enable(user, payload.token);
     return {};
   }
 
   @UseGuards(AuthGuard('bearer'))
   @Put('disableWithToken')
   @Bind(Request(), Body())
-  async disableWithToken({ user }, { token }) {
-    await this.totpService.disableWithToken(user, token);
+  async disableWithToken({ user }, payload) {
+    await this.validateService.validate(payload, {
+      token: `required|string`,
+    });
+    await this.totpService.disableWithToken(user, payload.token);
     return {};
   }
   
   @Put('disableWithBackupCode')
   @Bind(Request(), Body())
-  async disableWithBackupCode({ user }, { code }) {
-    await this.totpService.disableWithBackupCode(user, code);
+  async disableWithBackupCode({ user }, payload) {
+    await this.validateService.validate(payload, {
+      code: `required|string`,
+    });
+    await this.totpService.disableWithBackupCode(user, payload.code);
     return {};
   }
   

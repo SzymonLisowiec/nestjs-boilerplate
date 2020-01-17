@@ -5,6 +5,7 @@ import cache from './cache';
 import database from './database';
 import roles from './roles';
 import i18n from './i18n';
+import totp from './totp';
 
 export default [
   users,
@@ -14,4 +15,5 @@ export default [
   database,
   roles,
   i18n,
+  totp,
 ];
