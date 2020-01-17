@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nest-modules/mailer';
 import { AccessControlModule } from 'nest-access-control';
-import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TotpModule } from './totp/totp.module';
@@ -53,9 +52,6 @@ import { I18nMiddleware } from './i18n.middleware';
       }),
       inject: [ConfigService],
     }),
-  ],
-  providers: [
-    AppService,
   ],
 })
 export class AppModule {
