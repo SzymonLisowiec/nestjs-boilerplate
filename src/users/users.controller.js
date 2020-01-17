@@ -19,7 +19,7 @@ export class UsersController {
   @Bind(Body())
   async resetPassword(payload) {
     const [ minPasswordLength, maxPasswordLength ] = await this.configService.get('users.password.length');
-    this.validateService.validate(payload, {
+    await this.validateService.validate(payload, {
       email: 'required_without:token|email',
       token: 'required_without:email|string|min:16',
       password: `required|string|min:${minPasswordLength}|max:${maxPasswordLength}`,
@@ -31,7 +31,7 @@ export class UsersController {
   @Get(':userId')
   @Bind(UserRoles(), Param())
   async test (roles, params) {
-    this.validateService.validate(params, {
+    await this.validateService.validate(params, {
       userId: 'required|hex|size:24',
     });
     const user = await this.usersService.findOneById(params.userId);

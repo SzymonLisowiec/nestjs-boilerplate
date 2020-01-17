@@ -17,10 +17,16 @@ export class UsersService {
   }
 
   async create(user, confirmationIsNeeded) {
-    if (await this.findOneByEmail(user.email)) {
-      throw new BadRequestException('E-mail has already been registered');
-    }
-    if (await this.findOneByName(user.name)) {
+    const duplicatedUser = await this.userModel.findOne({
+      $or: [
+        { email: user.email },
+        { name: user.name },
+      ],
+    });
+    if (duplicatedUser) {
+      if (duplicatedUser.email.toLowerCase() === user.email.toLowerCase()) {
+        throw new BadRequestException('E-mail has already been registered');
+      }
       throw new BadRequestException('Username has already been taken.');
     }
 

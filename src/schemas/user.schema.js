@@ -2,9 +2,20 @@ import { Schema } from 'mongoose';
 import { UserTotpSchema } from './user-totp.schema';
 
 export const UserSchema = new Schema({
-  name: String,
-  email: String,
-  password: String,
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
   totp: {
     type: UserTotpSchema,
     default: null,
