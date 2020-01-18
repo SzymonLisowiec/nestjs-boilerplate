@@ -61,6 +61,9 @@ export class AuthService {
   }
 
   async register (request, payload) { // TODO: Registrations limit from one IP address.
+    payload.localization = {
+      language: request.locale,
+    };
     await this.usersService.create(payload, true);
     return {};
   }

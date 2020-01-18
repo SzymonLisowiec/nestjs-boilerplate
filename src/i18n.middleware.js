@@ -26,6 +26,6 @@ export class I18nMiddleware {
   }
 
   use(request, response, next) {
-    i18n.init(request, response, next); 
+    i18n.init(request, response, next);
   }
 }

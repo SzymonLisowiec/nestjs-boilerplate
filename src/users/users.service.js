@@ -16,37 +16,41 @@ export class UsersService {
     this.mailerService = mailerService;
   }
 
-  async create(user, confirmationIsNeeded) {
+  async create(userData, confirmationIsNeeded) {
     const duplicatedUser = await this.userModel.findOne({
       $or: [
-        { email: user.email },
-        { name: user.name },
+        { email: userData.email },
+        { name: userData.name },
       ],
     });
     if (duplicatedUser) {
-      if (duplicatedUser.email.toLowerCase() === user.email.toLowerCase()) {
+      if (duplicatedUser.email.toLowerCase() === userData.email.toLowerCase()) {
         throw new BadRequestException('E-mail has already been registered');
       }
       throw new BadRequestException('Username has already been taken.');
     }
 
-    const createdUser = new this.userModel({
-      ...user,
-      password: await this.hashPassword(user.password),
+    const user = new this.userModel({
+      name: userData.name,
+      email: userData.email,
+      password: await this.hashPassword(userData.password),
+      localization: {
+        language: userData.localization.language,
+      },
     });
-    await createdUser.save();
+    await user.save();
     
     if (confirmationIsNeeded && this.configService.get('users.sendRegistrationConfirmation')) {
       const confirmationExpireTime = this.configService.get('users.registrationConfirmationExpireTime');
-      const confirmation = await this.confirmationsService.create(createdUser, 'registration', confirmationExpireTime);
+      const confirmation = await this.confirmationsService.create(user, 'registration', confirmationExpireTime);
       try {
         await this.mailerService.sendMail({
-          to: createdUser.email,
+          to: user.email,
           subject: 'Registration',
           template: 'user-registration',
           context: {
             token: confirmation.token,
-            username: createdUser.name,
+            username: user.name,
           },
         });
       } catch (error) {
@@ -54,7 +58,7 @@ export class UsersService {
       }
     }
 
-    return createdUser;
+    return user;
   }
 
   async resendRegistrationConfirmation(user) {

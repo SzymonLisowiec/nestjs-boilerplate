@@ -1,5 +1,6 @@
 import { Schema } from 'mongoose';
 import { UserTotpSchema } from './user-totp.schema';
+import { UserLocalizationSchema } from './user-localization.schema';
 
 export const UserSchema = new Schema({
   name: {
@@ -24,6 +25,10 @@ export const UserSchema = new Schema({
     type: [String],
     required: true,
     default: ['user'],
+  },
+  localization: {
+    type: UserLocalizationSchema,
+    required: true,
   },
   createdAt: {
     type: Date,
