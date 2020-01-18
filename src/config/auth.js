@@ -1,5 +1,9 @@
 export default () => ({
   auth: {
-    needsConfirmedRegistrationToLogin: process.env.NEEDS_CONFIRMED_REGISTRATION_TO_LOGIN === 'true',
+    token: {
+      length: 64,
+      expireTime: 3600,
+    },
+    canLoginWithoutConfirmation: false,
   },
 });

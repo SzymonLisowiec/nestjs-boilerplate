@@ -1,9 +1,9 @@
-import { Injectable, Dependencies, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { Injectable, Dependencies, BadRequestException, InternalServerError } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as Argon2 from 'argon2';
 import * as Crypto from 'crypto';
+import { UsersService } from '../users/users.service';
 import { CacheManager } from '../cache';
-import { ConfigService } from '@nestjs/config';
 import { TotpService } from '../totp/totp.service';
 
 @Injectable()
@@ -35,7 +35,7 @@ export class AuthService {
   }
 
   async login (user, { totp }) { // TODO: Add limit for failed attempts
-    if (this.configService.get('auth.needsConfirmedRegistrationToLogin') && !user.registrationConfirmedAt) {
+    if (!this.configService.get('auth.canLoginWithoutConfirmation') && !user.registrationConfirmedAt) {
       throw new BadRequestException('First you have to confirm registration. Check your e-mail inbox.');
     }
     if (user.totp && user.totp.isActive) {
@@ -46,8 +46,8 @@ export class AuthService {
         throw new BadRequestException('Your authenticatior\'s code is wrong.');
       }
     }
-    const expireTime = 3600;
-    const accessTokenLength = 64;
+    const expireTime = await this.configService.get('auth.token.expireTime');
+    const accessTokenLength = await this.configService.get('auth.token.length');
     const accessToken = await this.generateAccessToken(accessTokenLength);
     await this.cache.set(accessToken, JSON.stringify({
       userId: user.id,
@@ -84,7 +84,7 @@ export class AuthService {
       return await Argon2.verify(hashedPassword, password);
     } catch (error) {
       console.log(error);
-      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new InternalServerError();
     }
   }
 }
