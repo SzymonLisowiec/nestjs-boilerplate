@@ -46,7 +46,7 @@ export class UsersService {
   }
 
 
-  sendConfirmationEmail (user) {
+  async sendConfirmationEmail (user) {
     const isConfirmationEnabled = this.configService.get('confirmations.types.registration.enabled');
     if (!isConfirmationEnabled) return;
     const confirmation = await this.confirmationsService.refreshOrCreate(user, 'registration');

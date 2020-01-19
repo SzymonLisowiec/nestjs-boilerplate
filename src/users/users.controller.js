@@ -1,4 +1,4 @@
-import { Controller, Dependencies, UseGuards, Get, Bind, Param, NotFoundException, UnauthorizedException, Post, Body } from '@nestjs/common';
+import { Controller, Dependencies, UseGuards, Get, Bind, Param, NotFoundException, UnauthorizedException, Post, Body, Put } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { UserRoles, ROLES_BUILDER_TOKEN } from 'nest-access-control';
