@@ -27,6 +27,15 @@ export class UsersController {
     return this.usersService.resetPassword(payload);
   }
 
+  @Put('resendConfirmation')
+  @Bind(Body())
+  async resendConfirmation(payload) {
+    await this.validateService.validate(payload, {
+      email: 'required|email',
+    });
+    return this.usersService.resendConfirmationEmail(payload);
+  }
+
   @UseGuards(AuthGuard('bearer'))
   @Get(':userId')
   @Bind(UserRoles(), Param())

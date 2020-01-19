@@ -1,20 +1,27 @@
 import { Injectable, Dependencies, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { getModelToken } from '@nestjs/mongoose';
 import { EventEmitter } from 'events';
 import { ConfirmedEvent } from './confirmed.event';
 
 @Injectable()
-@Dependencies(getModelToken('Confirmation'))
+@Dependencies(getModelToken('Confirmation'), ConfigService)
 export class ConfirmationsService extends EventEmitter {
   
-  constructor (confirmation, deliveryService) {
+  constructor (confirmationModel, configService) {
     super();
-    this.confirmation = confirmation;
+    this.confirmationModel = confirmationModel;
+    this.configService = configService;
   }
 
-  generateToken (length) {
+  getExpireTime (type) {
+    return this.configService.get(`confirmations.types.${type}`) || this.configService.get('confirmations.expireTime');
+  }
+
+  generateToken () {
     let token = '';
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = this.configService.get('confirmations.token.length');
+    const charset = this.configService.get('confirmations.token.charset');
     for (let i = 0; i < length; ++i) {
       token += charset.charAt(Math.floor(Math.random() * charset.length));
     }
@@ -22,27 +29,44 @@ export class ConfirmationsService extends EventEmitter {
   }
 
   async getPendingConfirmations (user, filters) {
-    return await this.confirmation.find({
+    return await this.confirmationModel.find({
       user: user.id,
       ...filters,
     });
   }
 
-  async create (user, type, expireTime, tokenGenerator) {
-    if (!expireTime) expireTime = 86400;
-    const token = typeof tokenGenerator === 'function' ? await tokenGenerator() : this.generateToken(128);
-    const confirmation = new this.confirmation({
+  async create (user, type) {
+    const token = this.generateToken();
+    const confirmation = new this.confirmationModel({
       user: user.id,
       type,
       token,
-      expiresAt: Date.now() + expireTime * 1000,
+      expiresAt: Date.now() + this.getExpireTime(type) * 1000,
     });
     confirmation.save();
     return confirmation;
   }
 
+  async refreshOrCreate (user, type) {
+    const token = this.generateToken();
+    let confirmation = await this.confirmationModel.findOne({
+      user: user.id,
+      type,
+    });
+    if (!confirmation) {
+      confirmation = new this.confirmationModel({
+        user: user.id,
+        type,
+      });
+    }
+    confirmation.token = token;
+    confirmation.expiresAt = Date.now() + this.getExpireTime(type) * 1000;
+    confirmation.save();
+    return confirmation;
+  }
+
   async confirm (token) { // TODO: Add rate limit
-    const confirmation = await this.confirmation.findOne({
+    const confirmation = await this.confirmationModel.findOne({
       token,
     }).populate('user');
     if (!confirmation) {

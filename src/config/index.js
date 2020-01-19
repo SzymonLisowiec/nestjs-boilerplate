@@ -6,6 +6,7 @@ import database from './database';
 import roles from './roles';
 import i18n from './i18n';
 import totp from './totp';
+import confirmations from './confirmations';
 
 export default [
   users,
@@ -16,4 +17,5 @@ export default [
   roles,
   i18n,
   totp,
+  confirmations,
 ];

@@ -64,7 +64,7 @@ export class AuthService {
     payload.localization = {
       language: request.locale,
     };
-    await this.usersService.create(payload, true);
+    await this.usersService.create(payload);
     return {};
   }
 

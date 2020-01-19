@@ -16,7 +16,7 @@ export class UsersService {
     this.mailerService = mailerService;
   }
 
-  async create(userData, confirmationIsNeeded) {
+  async create(userData) {
     const duplicatedUser = await this.userModel.findOne({
       $or: [
         { email: userData.email },
@@ -40,34 +40,37 @@ export class UsersService {
     });
     await user.save();
     
-    if (confirmationIsNeeded && this.configService.get('users.sendRegistrationConfirmation')) {
-      const confirmationExpireTime = this.configService.get('users.registrationConfirmationExpireTime');
-      const confirmation = await this.confirmationsService.create(user, 'registration', confirmationExpireTime);
-      try {
-        await this.mailerService.sendMail({
-          to: user.email,
-          subject: 'Registration',
-          template: 'user-registration',
-          context: {
-            token: confirmation.token,
-            username: user.name,
-          },
-        });
-      } catch (error) {
-        this.logger.error(error.message);
-      }
-    }
+    this.sendConfirmationEmail(user);
 
     return user;
   }
 
-  async resendRegistrationConfirmation(user) {
-    if (!this.configService.get('users.sendRegistrationConfirmation')) {
-      throw new BadRequestException('REGISTRATION_CONFIRMATIONS_DISABLED');
+
+  sendConfirmationEmail (user) {
+    const isConfirmationEnabled = this.configService.get('confirmations.types.registration.enabled');
+    if (!isConfirmationEnabled) return;
+    const confirmation = await this.confirmationsService.refreshOrCreate(user, 'registration');
+    try {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Registration',
+        template: 'user-registration',
+        context: {
+          token: confirmation.token,
+          username: user.name,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error.message);
     }
-    const confirmationExpireTime = this.configService.get('users.registrationConfirmationExpireTime');
-    const confirmation = await this.confirmationsService.create(user, 'registration', confirmationExpireTime);
-    this.confirmationsService.send(confirmation, 'email', user.email);
+  }
+
+  async resendConfirmationEmail({ email }) {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new BadRequestException('User with the given e-mail has not found!');
+    }
+    this.sendConfirmationEmail(user);
   }
 
   async findOneById(id) {
