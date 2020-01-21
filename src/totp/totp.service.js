@@ -26,25 +26,25 @@ export class TotpService {
   }
 
   generateKey (length) {
-    return new Promise((resovle, reject) => {
+    return new Promise((resolve, reject) => {
       Otp.generateKey(length, (error, key) => {
         if (error) {
           reject(error);
           return;
         }
-        resovle(key);
+        resolve(key);
       });
     });
   }
 
   generateBackupCodes (count, pattern) {
-    return new Promise((resovle, reject) => {
+    return new Promise((resolve, reject) => {
       Otp.generateBackupCodes (count, pattern, (error, key) => {
         if (error) {
           reject(error);
           return;
         }
-        resovle(key);
+        resolve(key);
       });
     });
   }

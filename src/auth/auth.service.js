@@ -40,10 +40,10 @@ export class AuthService {
     }
     if (user.totp && user.totp.isActive) {
       if (!totp) {
-        throw new BadRequestException('You have to provide code from authenticatior.');
+        throw new BadRequestException('You have to provide code from authenticator.');
       }
       if (!await this.totpService.verify(user.totp.key, totp, user.totp)) {
-        throw new BadRequestException('Your authenticatior\'s code is wrong.');
+        throw new BadRequestException('Your authenticator\'s code is wrong.');
       }
     }
     const expireTime = await this.configService.get('auth.token.expireTime');
