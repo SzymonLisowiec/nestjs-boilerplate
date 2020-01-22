@@ -2,8 +2,8 @@ export default () => ({
   auth: {
     token: {
       length: 64,
-      expireTime: 3600,
+      expireTime: parseInt(process.env.AUTH_TOKEN_EXPIRE_TIME) || 3600,
     },
-    canLoginWithoutConfirmation: false,
+    canLoginWithoutConfirmation: process.env.AUTH_LOGIN_WITHOUT_CONFIRMATION === 'true',
   },
 });
