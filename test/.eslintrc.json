@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "import/no-useless-path-segments": "off",
+    "arrow-body-style": "off"
+  }
+}
